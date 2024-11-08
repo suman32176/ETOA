@@ -3,12 +3,16 @@ import requests
 from utility.utils import log_response, LOG_TYPE_PEXEL
 import logging
 import time
+from typing import List, Tuple, Optional
+
+logger = logging.getLogger(__name__)
 
 PEXELS_API_KEY = os.environ.get('PEXELS_KEY')
 MAX_RETRIES = 3
 RETRY_DELAY = 2
 
-def search_videos(query_string, orientation_landscape=True, page=1):
+def search_videos(query_string: str, orientation_landscape: bool = True, page: int = 1) -> Optional[dict]:
+    """Search for videos using the Pexels API."""
     url = "https://api.pexels.com/videos/search"
     headers = {
         "Authorization": PEXELS_API_KEY,
@@ -29,24 +33,25 @@ def search_videos(query_string, orientation_landscape=True, page=1):
             log_response(LOG_TYPE_PEXEL, query_string, json_data)
             return json_data
         except requests.RequestException as e:
-            logging.error(f"Error in API request (attempt {attempt + 1}/{MAX_RETRIES}): {str(e)}")
+            logger.error(f"Error in API request (attempt {attempt + 1}/{MAX_RETRIES}): {str(e)}")
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
             else:
-                logging.error("Max retries reached. Giving up.")
+                logger.error("Max retries reached. Giving up.")
                 return None
 
-def getBestVideo(query_string, orientation_landscape=True, used_vids=[], page=1):
+def getBestVideo(query_string: str, orientation_landscape: bool = True, used_vids: List[str] = [], page: int = 1) -> Optional[str]:
+    """Get the best video for a given query string."""
     vids = search_videos(query_string, orientation_landscape, page)
     
     if vids is None or 'videos' not in vids:
-        logging.warning(f"No valid response for query: {query_string}")
+        logger.warning(f"No valid response for query: {query_string}")
         return None
 
     videos = vids['videos']
 
     if not videos:
-        logging.warning(f"No videos found for query: {query_string}")
+        logger.warning(f"No videos found for query: {query_string}")
         return None
 
     if orientation_landscape:
@@ -67,10 +72,11 @@ def getBestVideo(query_string, orientation_landscape=True, used_vids=[], page=1)
                     if not (video_file['link'].split('.hd')[0] in used_vids):
                         return video_file['link']
 
-    logging.warning(f"No suitable videos found for query: {query_string}")
+    logger.warning(f"No suitable videos found for query: {query_string}")
     return None
 
-def generate_video_url(timed_video_searches, video_server):
+def generate_video_url(timed_video_searches: List[Tuple[Tuple[float, float], List[str]]], video_server: str) -> List[Tuple[Tuple[float, float], Optional[str]]]:
+    """Generate video URLs for timed video searches."""
     timed_video_urls = []
     if video_server == "pexel":
         used_links = []
@@ -84,10 +90,10 @@ def generate_video_url(timed_video_searches, video_server):
                         break
                 if url:
                     break
-            timed_video_urls.append([[t1, t2], url])
+            timed_video_urls.append(((t1, t2), url))
     elif video_server == "stable_diffusion":
         timed_video_urls = get_images_for_video(timed_video_searches)
     else:
-        logging.error(f"Unsupported video server: {video_server}")
+        logger.error(f"Unsupported video server: {video_server}")
 
     return timed_video_urls
