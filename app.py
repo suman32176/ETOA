@@ -30,9 +30,9 @@ async def main(script_file, video_type):
         script = read_script_from_file(script_file)
         logging.info(f"Script read from file: {script[:50]}...")
 
-        # Generate audio from the script using the new natural-sounding voice
-        SAMPLE_FILE_NAME = generate_audio(script, SAMPLE_FILE_NAME)
-        logging.info(f"Audio generated: {SAMPLE_FILE_NAME}")
+        # Generate audio from the script with improved quality and emotion
+        await generate_audio(script, SAMPLE_FILE_NAME)
+        logging.info(f"Audio generated with improved quality and emotion: {SAMPLE_FILE_NAME}")
 
         # Generate timed captions
         timed_captions = generate_timed_captions(SAMPLE_FILE_NAME)
@@ -53,10 +53,10 @@ async def main(script_file, video_type):
         # Merge empty intervals in background video URLs
         background_video_urls = merge_empty_intervals(background_video_urls)
 
-        # Generate the final video
+        # Generate the final video with subtitles at the bottom
         if background_video_urls is not None:
             video = get_output_media(SAMPLE_FILE_NAME, timed_captions, background_video_urls, VIDEO_SERVER)
-            logging.info(f"Output video generated: {video}")
+            logging.info(f"Output video generated with improved audio and subtitles at the bottom: {video}")
         else:
             logging.warning("No video generated due to lack of background videos")
 
@@ -65,7 +65,7 @@ async def main(script_file, video_type):
         raise
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate a video from a script file.")
+    parser = argparse.ArgumentParser(description="Generate a video from a script file with improved audio and subtitles.")
     parser.add_argument("script_file", type=str, help="Path to the script file (script.txt)")
     parser.add_argument("--video_type", type=str, choices=['short', 'long'], default='short', help="Type of video to generate")
 
