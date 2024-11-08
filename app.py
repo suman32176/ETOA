@@ -30,9 +30,9 @@ async def main(script_file, video_type):
         script = read_script_from_file(script_file)
         logging.info(f"Script read from file: {script[:50]}...")
 
-        # Generate audio from the script with emotion and improved quality
-        await generate_audio(script, SAMPLE_FILE_NAME)
-        logging.info(f"Audio generated with emotion: {SAMPLE_FILE_NAME}")
+        # Generate audio from the script using the new natural-sounding voice
+        SAMPLE_FILE_NAME = generate_audio(script, SAMPLE_FILE_NAME)
+        logging.info(f"Audio generated: {SAMPLE_FILE_NAME}")
 
         # Generate timed captions
         timed_captions = generate_timed_captions(SAMPLE_FILE_NAME)
