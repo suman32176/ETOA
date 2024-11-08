@@ -7,30 +7,7 @@ import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def download_file(url, filename):
-    try:
-        with open(filename, 'wb') as f:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            }
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            f.write(response.content)
-        return True
-    except requests.RequestException as e:
-        logging.error(f"Error downloading file from {url}: {str(e)}")
-        return False
-
-def search_program(program_name):
-    try: 
-        search_cmd = "where" if platform.system() == "Windows" else "which"
-        return subprocess.check_output([search_cmd, program_name]).decode().strip()
-    except subprocess.CalledProcessError:
-        return None
-
-def get_program_path(program_name):
-    program_path = search_program(program_name)
-    return program_path
+# ... (keep the existing imports and helper functions)
 
 def get_output_media(audio_file_path, timed_captions, background_video_data, video_server):
     OUTPUT_FILE_NAME = "rendered_video.mp4"
@@ -73,7 +50,7 @@ def get_output_media(audio_file_path, timed_captions, background_video_data, vid
 
     for (t1, t2), text in timed_captions:
         try:
-            text_clip = TextClip(txt=text, fontsize=50, color="white", stroke_width=2, stroke_color="black", method='caption', size=(1920, 1080))
+            text_clip = TextClip(txt=text, fontsize=40, color="white", stroke_width=2, stroke_color="black", method='caption', size=(1920, 200))
             text_clip = text_clip.set_start(t1).set_end(t2).set_position(('center', 'bottom'))
             visual_clips.append(text_clip)
         except Exception as e:
@@ -96,12 +73,4 @@ def get_output_media(audio_file_path, timed_captions, background_video_data, vid
 
     return OUTPUT_FILE_NAME
 
-def combine_video_segments(segment_videos):
-    try:
-        clips = [VideoFileClip(video) for video in segment_videos]
-        final_clip = concatenate_videoclips(clips)
-        final_clip.write_videofile("final_video.mp4", codec='libx264', audio_codec='aac', threads=4, logger=None)
-        return "final_video.mp4"
-    except Exception as e:
-        logging.error(f"Error combining video segments: {str(e)}")
-        return None
+# ... (keep the existing combine_video_segments function)
