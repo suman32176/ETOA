@@ -6,6 +6,8 @@ from datetime import datetime
 from utility.utils import log_response, LOG_TYPE_GPT
 import logging
 
+logger = logging.getLogger(__name__)
+
 if len(os.environ.get("GROQ_API_KEY", "")) > 30:
     from groq import Groq
     model = "llama3-70b-8192"
@@ -39,13 +41,15 @@ Output the result as a Python list of lists, where each inner list contains a ti
 [[0, 5], ["keyword1", "keyword2", "keyword3"]], [[5, 10], ["keyword4", "keyword5", "keyword6"]], ...
 """
 
-def fix_json(json_str):
+def fix_json(json_str: str) -> str:
+    """Fix common JSON formatting issues."""
     json_str = json_str.replace("'", '"').replace(""", '"').replace(""", '"')
     json_str = re.sub(r'(?<!\\)"', '\\"', json_str)
     json_str = json_str.replace('\\"', '"')
     return json_str
 
-def getVideoSearchQueriesTimed(script, captions_timed):
+def getVideoSearchQueriesTimed(script: str, captions_timed: list) -> list:
+    """Generate timed video search queries based on the script and captions."""
     try:
         content = call_OpenAI(script, captions_timed)
         content = fix_json(content)
@@ -56,16 +60,17 @@ def getVideoSearchQueriesTimed(script, captions_timed):
         
         return out
     except json.JSONDecodeError as e:
-        logging.error(f"JSON decoding error: {str(e)}")
-        logging.error(f"Problematic content: {content}")
+        logger.error(f"JSON decoding error: {str(e)}")
+        logger.error(f"Problematic content: {content}")
     except Exception as e:
-        logging.error(f"Error in getVideoSearchQueriesTimed: {str(e)}")
+        logger.error(f"Error in getVideoSearchQueriesTimed: {str(e)}")
     
     return None
 
-def call_OpenAI(script, captions_timed):
+def call_OpenAI(script: str, captions_timed: list) -> str:
+    """Call OpenAI API to generate video search queries."""
     user_content = f"Script: {script}\nTimed Captions: {captions_timed}"
-    logging.info(f"Sending request to OpenAI API with content length: {len(user_content)}")
+    logger.info(f"Sending request to OpenAI API with content length: {len(user_content)}")
     
     try:
         response = client.chat.completions.create(
@@ -82,10 +87,11 @@ def call_OpenAI(script, captions_timed):
         log_response(LOG_TYPE_GPT, script, text)
         return text
     except Exception as e:
-        logging.error(f"Error calling OpenAI API: {str(e)}")
+        logger.error(f"Error calling OpenAI API: {str(e)}")
         raise
 
-def merge_empty_intervals(segments):
+def merge_empty_intervals(segments: list) -> list:
+    """Merge empty intervals in the video segments."""
     merged = []
     i = 0
     while i < len(segments):
